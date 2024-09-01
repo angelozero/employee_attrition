@@ -1,4 +1,4 @@
-# Projeto - Machine Learning - Employee Satisfaction Survey
+# Employee Satisfaction Survey - Machine Learning
 
 ## Introdução
 
@@ -26,7 +26,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 # Carregando o dataset
 ```python
-url = 'https://path_to_your_dataset.csv'  # Substitua pelo seu URL
+url = 'https://github.com/angelozero/machine_learning/blob/main/Employee%20Attrition.csv' 
 data = pd.read_csv(url)
 ```
 
@@ -48,8 +48,12 @@ data.drop_duplicates(inplace=True)
 # Separação entre Variáveis Independentes e Dependentes
 ```python
 X = data.drop(['satisfaction_level'], axis=1)
-X_encoded = pd.get_dummies(X, drop_first=True)  # Codificação de variáveis categóricas
-y = (data['satisfaction_level'] >= 0.5).astype(int)  # Variável alvo categórica
+
+# Codificação de variáveis categóricas
+X_encoded = pd.get_dummies(X, drop_first=True)  
+
+# Variável alvo categórica
+y = (data['satisfaction_level'] >= 0.5).astype(int)
 ```
 
 # Divisão dos Dados em Conjuntos de Treino e Teste (Holdout)
@@ -80,7 +84,7 @@ models = {
 param_grid = {
     'KNN': {'knn__n_neighbors': [3, 5, 7]},
     'Decision Tree': {'tree__max_depth': [None, 10, 20]},
-    'Naive Bayes': {},  # Não há hiperparâmetros relevantes
+    'Naive Bayes': {}, 
     'SVM': {'svm__C': [0.1, 1, 10]}
 }
 
@@ -178,6 +182,5 @@ Confusion Matrix:
 
 # Exportação do Modelo
 ```python
-# Salvar o melhor modelo, por exemplo, SVM
 joblib.dump(best_models['SVM'], 'best_model.pkl')
 ```
