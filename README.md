@@ -263,3 +263,15 @@ joblib.dump(best_models['SVM'], 'best_model_employee_attrition.pkl')
 X_encoded_columns = X_encoded.columns.tolist()
 joblib.dump((best_models['SVM'], X_encoded_columns), 'best_model_with_columns.pkl')
 ```
+
+# Resumo dos Principais Achados
+
+O projeto de previsão da satisfação dos funcionários revelou que o modelo de **Decision Tree** teve o melhor desempenho, com uma acurácia de **97,54%**. O **SVM** também apresentou bons resultados, com **95,07%** de acurácia. A distribuição dos dados mostrou que a maioria dos funcionários (709 de 999) estava insatisfeita, o que é preocupante. O upsampling da classe minoritária melhorou o balanceamento dos dados.
+
+## Análise dos Resultados e Pontos de Atenção
+
+Embora os resultados sejam positivos, o modelo Decision Tree pode sofrer de overfitting e requer monitoramento contínuo. Além disso, é essencial acompanhar as variáveis que afetam a satisfação dos funcionários e considerar a expansão do conjunto de dados para melhorar o modelo.
+
+## Conclusão
+
+Os modelos de machine learning demonstraram eficácia na previsão da satisfação dos funcionários, oferecendo insights valiosos para a empresa. A alta taxa de insatisfação identificada exige ações proativas para melhorar o ambiente de trabalho e aumentar a retenção e produtividade dos colaboradores. O monitoramento contínuo e a adaptação são cruciais para o sucesso a longo prazo.
