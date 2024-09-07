@@ -1,186 +1,976 @@
-# Employee Satisfaction Survey - Machine Learning
-
-## Introdução
-
-### Descrição do Problema e Objetivo do Projeto
-O objetivo deste projeto é desenvolver um modelo de machine learning que prevê a satisfação dos funcionários com base em várias características coletadas em uma pesquisa. A previsão da satisfação pode ajudar a empresa a entender melhor as necessidades e expectativas dos seus colaboradores, promovendo um ambiente de trabalho mais saudável e produtivo.
-
-### Breve Descrição do Dataset
-O dataset "Employee Satisfaction Survey" contém informações relevantes sobre os funcionários, como níveis de satisfação, avaliações de desempenho, horas trabalhadas, tempo de serviço, acidentes de trabalho, promoções e salários. Com essas informações, podemos analisar os fatores que influenciam a satisfação dos funcionários.
-
-## Carga de Dados
-
-### Importação de Bibliotecas Necessárias
-```python
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-```
-
-# Carregando o dataset
-```python
-url = 'https://github.com/angelozero/machine_learning/blob/main/Employee%20Attrition.csv' 
-data = pd.read_csv(url)
-```
-
-# Visualização Básica dos Dados
-```python
-print(data.head())
-print(data.info())
-```
-
-# Pré-processamento dos Dados
-```python
-# Tratamento de valores ausentes
-data.dropna(inplace=True)
-
-# Remover duplicatas
-data.drop_duplicates(inplace=True)
-```
-
-# Separação entre Variáveis Independentes e Dependentes
-```python
-X = data.drop(['satisfaction_level'], axis=1)
-
-# Codificação de variáveis categóricas
-X_encoded = pd.get_dummies(X, drop_first=True)  
-
-# Variável alvo categórica
-y = (data['satisfaction_level'] >= 0.5).astype(int)
-```
-
-# Divisão dos Dados em Conjuntos de Treino e Teste (Holdout)
-```python
-X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.2, random_state=42)
-```
-
-# Transformação de Dados
-```python
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-```
-
-# Modelagem
-### Criação de Pipelines para Cada Modelo
-```python
-models = {
-    'KNN': Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier())]),
-    'Decision Tree': Pipeline([('scaler', StandardScaler()), ('tree', DecisionTreeClassifier())]),
-    'Naive Bayes': Pipeline([('scaler', StandardScaler()), ('nb', GaussianNB())]),
-    'SVM': Pipeline([('scaler', StandardScaler()), ('svm', SVC())])
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "mount_file_id": "1oqiD-8RQMRApjFQQIWvrylXzc_6quBIY",
+      "authorship_tag": "ABX9TyN4d3jc0cQBEBQdMY8DHdRO",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/angelozero/machine_learning/blob/main/employe_attrition.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Notebook: Análise da Satisfação dos Funcionários\n",
+        "\n",
+        "## Introdução\n",
+        "Neste projeto, nosso objetivo é analisar a satisfação dos funcionários em uma empresa, utilizando um conjunto de dados que contém informações sobre desempenho, horas trabalhadas, e outros fatores. O objetivo é prever a satisfação dos funcionários com base em suas características.\n",
+        "\n",
+        "O conjunto de dados contém informações como identificação dos funcionários, níveis de satisfação, avaliações de desempenho, envolvimento em projetos, entre outros. Essas informações nos permitirão entender os fatores que impactam a satisfação dos funcionários.\n"
+      ],
+      "metadata": {
+        "id": "uiqyhWyHrXCn"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Carga de Dados\n",
+        "\n",
+        "### Importação de bibliotecas necessárias"
+      ],
+      "metadata": {
+        "id": "-MWkJLD4rfR5"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import seaborn as sns\n",
+        "import matplotlib.pyplot as plt\n",
+        "import joblib\n",
+        "from sklearn.model_selection import train_test_split, GridSearchCV\n",
+        "from sklearn.preprocessing import StandardScaler, MinMaxScaler\n",
+        "from sklearn.pipeline import Pipeline\n",
+        "from sklearn.metrics import classification_report, accuracy_score, confusion_matrix\n",
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "from sklearn.tree import DecisionTreeClassifier\n",
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "from sklearn.svm import SVC\n",
+        "from sklearn.utils import resample\n",
+        "from sklearn.model_selection import GridSearchCV"
+      ],
+      "metadata": {
+        "id": "dj8rm3Derf0Y"
+      },
+      "execution_count": 85,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Visualização Básica dos Dados"
+      ],
+      "metadata": {
+        "id": "-xUK_abAt7wM"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Carregando o dataset\n",
+        "df = pd.read_csv('/content/Employee Attrition.csv')\n",
+        "\n",
+        "# Visualização básica dos dados\n",
+        "df.head(10)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 363
+        },
+        "id": "BVqQAQhMrls3",
+        "outputId": "7d484e46-0c68-4056-bb37-7600ecac4a7d"
+      },
+      "execution_count": 86,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "   Emp ID  satisfaction_level  last_evaluation  number_project  \\\n",
+              "0       1                0.38             0.53               2   \n",
+              "1       2                0.80             0.86               5   \n",
+              "2       3                0.11             0.88               7   \n",
+              "3       4                0.72             0.87               5   \n",
+              "4       5                0.37             0.52               2   \n",
+              "5       6                0.41             0.50               2   \n",
+              "6       7                0.10             0.77               6   \n",
+              "7       8                0.92             0.85               5   \n",
+              "8       9                0.89             1.00               5   \n",
+              "9      10                0.42             0.53               2   \n",
+              "\n",
+              "   average_montly_hours  time_spend_company  Work_accident  \\\n",
+              "0                   157                   3              0   \n",
+              "1                   262                   6              0   \n",
+              "2                   272                   4              0   \n",
+              "3                   223                   5              0   \n",
+              "4                   159                   3              0   \n",
+              "5                   153                   3              0   \n",
+              "6                   247                   4              0   \n",
+              "7                   259                   5              0   \n",
+              "8                   224                   5              0   \n",
+              "9                   142                   3              0   \n",
+              "\n",
+              "   promotion_last_5years   dept  salary  \n",
+              "0                      0  sales     low  \n",
+              "1                      0  sales  medium  \n",
+              "2                      0  sales  medium  \n",
+              "3                      0  sales     low  \n",
+              "4                      0  sales     low  \n",
+              "5                      0  sales     low  \n",
+              "6                      0  sales     low  \n",
+              "7                      0  sales     low  \n",
+              "8                      0  sales     low  \n",
+              "9                      0  sales     low  "
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-68d42c84-4069-4d5d-9d03-cc44d3f9b6d4\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Emp ID</th>\n",
+              "      <th>satisfaction_level</th>\n",
+              "      <th>last_evaluation</th>\n",
+              "      <th>number_project</th>\n",
+              "      <th>average_montly_hours</th>\n",
+              "      <th>time_spend_company</th>\n",
+              "      <th>Work_accident</th>\n",
+              "      <th>promotion_last_5years</th>\n",
+              "      <th>dept</th>\n",
+              "      <th>salary</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>1</td>\n",
+              "      <td>0.38</td>\n",
+              "      <td>0.53</td>\n",
+              "      <td>2</td>\n",
+              "      <td>157</td>\n",
+              "      <td>3</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>2</td>\n",
+              "      <td>0.80</td>\n",
+              "      <td>0.86</td>\n",
+              "      <td>5</td>\n",
+              "      <td>262</td>\n",
+              "      <td>6</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>medium</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>3</td>\n",
+              "      <td>0.11</td>\n",
+              "      <td>0.88</td>\n",
+              "      <td>7</td>\n",
+              "      <td>272</td>\n",
+              "      <td>4</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>medium</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>4</td>\n",
+              "      <td>0.72</td>\n",
+              "      <td>0.87</td>\n",
+              "      <td>5</td>\n",
+              "      <td>223</td>\n",
+              "      <td>5</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>5</td>\n",
+              "      <td>0.37</td>\n",
+              "      <td>0.52</td>\n",
+              "      <td>2</td>\n",
+              "      <td>159</td>\n",
+              "      <td>3</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>5</th>\n",
+              "      <td>6</td>\n",
+              "      <td>0.41</td>\n",
+              "      <td>0.50</td>\n",
+              "      <td>2</td>\n",
+              "      <td>153</td>\n",
+              "      <td>3</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>6</th>\n",
+              "      <td>7</td>\n",
+              "      <td>0.10</td>\n",
+              "      <td>0.77</td>\n",
+              "      <td>6</td>\n",
+              "      <td>247</td>\n",
+              "      <td>4</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>7</th>\n",
+              "      <td>8</td>\n",
+              "      <td>0.92</td>\n",
+              "      <td>0.85</td>\n",
+              "      <td>5</td>\n",
+              "      <td>259</td>\n",
+              "      <td>5</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>8</th>\n",
+              "      <td>9</td>\n",
+              "      <td>0.89</td>\n",
+              "      <td>1.00</td>\n",
+              "      <td>5</td>\n",
+              "      <td>224</td>\n",
+              "      <td>5</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>9</th>\n",
+              "      <td>10</td>\n",
+              "      <td>0.42</td>\n",
+              "      <td>0.53</td>\n",
+              "      <td>2</td>\n",
+              "      <td>142</td>\n",
+              "      <td>3</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>sales</td>\n",
+              "      <td>low</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-68d42c84-4069-4d5d-9d03-cc44d3f9b6d4')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-68d42c84-4069-4d5d-9d03-cc44d3f9b6d4 button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-68d42c84-4069-4d5d-9d03-cc44d3f9b6d4');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "<div id=\"df-55a8d560-3823-4098-a699-00e2286934c8\">\n",
+              "  <button class=\"colab-df-quickchart\" onclick=\"quickchart('df-55a8d560-3823-4098-a699-00e2286934c8')\"\n",
+              "            title=\"Suggest charts\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\"viewBox=\"0 0 24 24\"\n",
+              "     width=\"24px\">\n",
+              "    <g>\n",
+              "        <path d=\"M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z\"/>\n",
+              "    </g>\n",
+              "</svg>\n",
+              "  </button>\n",
+              "\n",
+              "<style>\n",
+              "  .colab-df-quickchart {\n",
+              "      --bg-color: #E8F0FE;\n",
+              "      --fill-color: #1967D2;\n",
+              "      --hover-bg-color: #E2EBFA;\n",
+              "      --hover-fill-color: #174EA6;\n",
+              "      --disabled-fill-color: #AAA;\n",
+              "      --disabled-bg-color: #DDD;\n",
+              "  }\n",
+              "\n",
+              "  [theme=dark] .colab-df-quickchart {\n",
+              "      --bg-color: #3B4455;\n",
+              "      --fill-color: #D2E3FC;\n",
+              "      --hover-bg-color: #434B5C;\n",
+              "      --hover-fill-color: #FFFFFF;\n",
+              "      --disabled-bg-color: #3B4455;\n",
+              "      --disabled-fill-color: #666;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart {\n",
+              "    background-color: var(--bg-color);\n",
+              "    border: none;\n",
+              "    border-radius: 50%;\n",
+              "    cursor: pointer;\n",
+              "    display: none;\n",
+              "    fill: var(--fill-color);\n",
+              "    height: 32px;\n",
+              "    padding: 0;\n",
+              "    width: 32px;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart:hover {\n",
+              "    background-color: var(--hover-bg-color);\n",
+              "    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "    fill: var(--button-hover-fill-color);\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-quickchart-complete:disabled,\n",
+              "  .colab-df-quickchart-complete:disabled:hover {\n",
+              "    background-color: var(--disabled-bg-color);\n",
+              "    fill: var(--disabled-fill-color);\n",
+              "    box-shadow: none;\n",
+              "  }\n",
+              "\n",
+              "  .colab-df-spinner {\n",
+              "    border: 2px solid var(--fill-color);\n",
+              "    border-color: transparent;\n",
+              "    border-bottom-color: var(--fill-color);\n",
+              "    animation:\n",
+              "      spin 1s steps(1) infinite;\n",
+              "  }\n",
+              "\n",
+              "  @keyframes spin {\n",
+              "    0% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "      border-left-color: var(--fill-color);\n",
+              "    }\n",
+              "    20% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    30% {\n",
+              "      border-color: transparent;\n",
+              "      border-left-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    40% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-top-color: var(--fill-color);\n",
+              "    }\n",
+              "    60% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "    }\n",
+              "    80% {\n",
+              "      border-color: transparent;\n",
+              "      border-right-color: var(--fill-color);\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "    90% {\n",
+              "      border-color: transparent;\n",
+              "      border-bottom-color: var(--fill-color);\n",
+              "    }\n",
+              "  }\n",
+              "</style>\n",
+              "\n",
+              "  <script>\n",
+              "    async function quickchart(key) {\n",
+              "      const quickchartButtonEl =\n",
+              "        document.querySelector('#' + key + ' button');\n",
+              "      quickchartButtonEl.disabled = true;  // To prevent multiple clicks.\n",
+              "      quickchartButtonEl.classList.add('colab-df-spinner');\n",
+              "      try {\n",
+              "        const charts = await google.colab.kernel.invokeFunction(\n",
+              "            'suggestCharts', [key], {});\n",
+              "      } catch (error) {\n",
+              "        console.error('Error during call to suggestCharts:', error);\n",
+              "      }\n",
+              "      quickchartButtonEl.classList.remove('colab-df-spinner');\n",
+              "      quickchartButtonEl.classList.add('colab-df-quickchart-complete');\n",
+              "    }\n",
+              "    (() => {\n",
+              "      let quickchartButtonEl =\n",
+              "        document.querySelector('#df-55a8d560-3823-4098-a699-00e2286934c8 button');\n",
+              "      quickchartButtonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "    })();\n",
+              "  </script>\n",
+              "</div>\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "variable_name": "df",
+              "summary": "{\n  \"name\": \"df\",\n  \"rows\": 999,\n  \"fields\": [\n    {\n      \"column\": \"Emp ID\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 288,\n        \"min\": 1,\n        \"max\": 999,\n        \"num_unique_values\": 999,\n        \"samples\": [\n          454,\n          794,\n          210\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"satisfaction_level\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0.2653080362249672,\n        \"min\": 0.09,\n        \"max\": 0.92,\n        \"num_unique_values\": 70,\n        \"samples\": [\n          0.13,\n          0.38,\n          0.12\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"last_evaluation\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0.1979096104419592,\n        \"min\": 0.45,\n        \"max\": 1.0,\n        \"num_unique_values\": 51,\n        \"samples\": [\n          0.6,\n          0.82,\n          0.72\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"number_project\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 1,\n        \"min\": 2,\n        \"max\": 7,\n        \"num_unique_values\": 6,\n        \"samples\": [\n          2,\n          5,\n          3\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"average_montly_hours\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 61,\n        \"min\": 126,\n        \"max\": 310,\n        \"num_unique_values\": 149,\n        \"samples\": [\n          263,\n          282,\n          253\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"time_spend_company\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0,\n        \"min\": 2,\n        \"max\": 6,\n        \"num_unique_values\": 5,\n        \"samples\": [\n          6,\n          2,\n          4\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"Work_accident\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0,\n        \"min\": 0,\n        \"max\": 1,\n        \"num_unique_values\": 2,\n        \"samples\": [\n          1,\n          0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"promotion_last_5years\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0,\n        \"min\": 0,\n        \"max\": 1,\n        \"num_unique_values\": 2,\n        \"samples\": [\n          1,\n          0\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"dept\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 10,\n        \"samples\": [\n          \"marketing\",\n          \"accounting\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"salary\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 3,\n        \"samples\": [\n          \"low\",\n          \"medium\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {},
+          "execution_count": 86
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Pré-processamento dos Dados\n",
+        "### Limpeza de dados"
+      ],
+      "metadata": {
+        "id": "9UwDC2vZrvaN"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Verificando valores ausentes\n",
+        "df.isnull().sum()\n",
+        "\n",
+        "# Tratamento de valores ausentes (se necessário)\n",
+        "df.dropna(inplace=True)\n",
+        "\n",
+        "# Remoção de duplicados\n",
+        "df.drop_duplicates(inplace=True)"
+      ],
+      "metadata": {
+        "id": "8KA5P5uXr0BD"
+      },
+      "execution_count": 87,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Separação entre variáveis independentes e dependentes"
+      ],
+      "metadata": {
+        "id": "qSydtEgBr8HO"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Supondo que a variável dependente seja 'Satisfaction'\n",
+        "X = df.drop('satisfaction_level', axis=1)"
+      ],
+      "metadata": {
+        "id": "ZLcVxAl0r-BQ"
+      },
+      "execution_count": 88,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Codificação de variáveis categóricas"
+      ],
+      "metadata": {
+        "id": "uFUIieHRuvfP"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Converte variáveis categóricas em variáveis dummy\n",
+        "X_encoded = pd.get_dummies(X, drop_first=True)\n",
+        "\n",
+        "# Converte para categórica\n",
+        "y = (df['satisfaction_level'] >= 0.5).astype(int)"
+      ],
+      "metadata": {
+        "id": "_x-n2FmKuzV3"
+      },
+      "execution_count": 89,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Verificando a distribuição das classes antes do balanceamento"
+      ],
+      "metadata": {
+        "id": "F7FHdhmuCz8P"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(\"Distribuição das classes antes do balanceamento:\")\n",
+        "print(y.value_counts())"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "mbLUL30DC7Cq",
+        "outputId": "27db7eb4-2035-4581-f5ae-8c89406d4f95"
+      },
+      "execution_count": 90,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Distribuição das classes antes do balanceamento:\n",
+            "satisfaction_level\n",
+            "0    709\n",
+            "1    290\n",
+            "Name: count, dtype: int64\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Balanceamento das classes"
+      ],
+      "metadata": {
+        "id": "T8Qu8V93DEJe"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "y0 = df[df['satisfaction_level'] < 0.5]\n",
+        "y1 = df[df['satisfaction_level'] >= 0.5]"
+      ],
+      "metadata": {
+        "id": "9bWJ1INiDFVB"
+      },
+      "execution_count": 91,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Upsampling da classe minoritária"
+      ],
+      "metadata": {
+        "id": "vspxTQMbDOXb"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "y1_upsampled = resample(y1, replace=True, n_samples=len(y0), random_state=42)\n",
+        "data_balanced = pd.concat([y0, y1_upsampled])"
+      ],
+      "metadata": {
+        "id": "8TPqL3HHDPak"
+      },
+      "execution_count": 92,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Atualizando as variáveis X e y"
+      ],
+      "metadata": {
+        "id": "1Yy-LZ1iDabS"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "y_balanced = (data_balanced['satisfaction_level'] >= 0.5).astype(int)\n",
+        "X_balanced = data_balanced.drop(['satisfaction_level'], axis=1)\n",
+        "X_encoded_balanced = pd.get_dummies(X_balanced, drop_first=True)"
+      ],
+      "metadata": {
+        "id": "G2C_YzQcDbhU"
+      },
+      "execution_count": 93,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Divisão dos dados em conjuntos de treino e teste (holdout)"
+      ],
+      "metadata": {
+        "id": "sQ3-7XN1sV1U"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "X_train, X_test, y_train, y_test = train_test_split(X_encoded_balanced, y_balanced, test_size=0.2, random_state=42)"
+      ],
+      "metadata": {
+        "id": "QU6AFeaLsW0U"
+      },
+      "execution_count": 94,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Transformação de Dados\n",
+        "### Normalização e padronização dos dados"
+      ],
+      "metadata": {
+        "id": "pqXXqZqNsbVG"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "scaler = StandardScaler()\n",
+        "X_train_scaled = scaler.fit_transform(X_train)\n",
+        "X_test_scaled = scaler.transform(X_test)"
+      ],
+      "metadata": {
+        "id": "59JoPIgjuI3b"
+      },
+      "execution_count": 95,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Modelagem\n",
+        "### Criação de Pipelines para Cada Modelo"
+      ],
+      "metadata": {
+        "id": "HXEU9VckvGN7"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Criação de Pipelines para Cada Modelo\n",
+        "models = {\n",
+        "    'KNN': Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier())]),\n",
+        "    'Decision Tree': Pipeline([('scaler', StandardScaler()), ('tree', DecisionTreeClassifier())]),\n",
+        "    'Naive Bayes': Pipeline([('scaler', StandardScaler()), ('nb', GaussianNB())]),\n",
+        "    'SVM': Pipeline([('scaler', StandardScaler()), ('svm', SVC())])\n",
+        "}\n",
+        "\n",
+        "results = {}\n",
+        "for model_name, model in models.items():\n",
+        "    model.fit(X_train_scaled, y_train)  # Treinamento do modelo\n",
+        "    y_pred = model.predict(X_test_scaled)  # Predição\n",
+        "    results[model_name] = accuracy_score(y_test, y_pred)  # Avaliação"
+      ],
+      "metadata": {
+        "id": "IHz3os6kvH4e"
+      },
+      "execution_count": 96,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Otimização de Hiperparâmetros\n",
+        "### Uso de GridSearchCV"
+      ],
+      "metadata": {
+        "id": "WEaPzoJmw4IT"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Definindo o grid de hiperparâmetros\n",
+        "param_grid = {\n",
+        "    'KNN': {'knn__n_neighbors': [3, 5, 7]},\n",
+        "    'Decision Tree': {'tree__max_depth': [None, 10, 20]},\n",
+        "    'Naive Bayes': {},  # Naive Bayes não tem hiperparâmetros relevantes para ajuste\n",
+        "    'SVM': {'svm__C': [0.1, 1, 10]}\n",
+        "}\n",
+        "\n",
+        "best_models = {}\n",
+        "for model_name, model in models.items():\n",
+        "    # Verifica se há hiperparâmetros a serem ajustados\n",
+        "    if param_grid[model_name]:\n",
+        "        grid = GridSearchCV(model, param_grid[model_name], cv=5)\n",
+        "        grid.fit(X_train_scaled, y_train)\n",
+        "        best_models[model_name] = grid.best_estimator_\n",
+        "    else:\n",
+        "        # Treina o modelo sem ajuste de hiperparâmetros\n",
+        "        model.fit(X_train_scaled, y_train)\n",
+        "        best_models[model_name] = model"
+      ],
+      "metadata": {
+        "id": "r-mOkWLOw6Hk"
+      },
+      "execution_count": 97,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Avaliação dos Modelos\n",
+        "### Comparação de Resultados"
+      ],
+      "metadata": {
+        "id": "gYyXDUxzx3q7"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "for model_name, model in best_models.items():\n",
+        "    y_pred = model.predict(X_test_scaled)\n",
+        "    print(f\"Model: {model_name}\")\n",
+        "    print(\"Accuracy:\", accuracy_score(y_test, y_pred))\n",
+        "    print(\"Classification Report:\\n\", classification_report(y_test, y_pred))\n",
+        "    print(\"Confusion Matrix:\\n\", confusion_matrix(y_test, y_pred))\n",
+        "    print(\"\\n\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "OoeZiadCx5GT",
+        "outputId": "1ee09fd5-7874-463e-bf6f-fdc47c621d30"
+      },
+      "execution_count": 98,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Model: KNN\n",
+            "Accuracy: 0.9295774647887324\n",
+            "Classification Report:\n",
+            "               precision    recall  f1-score   support\n",
+            "\n",
+            "           0       0.92      0.94      0.93       142\n",
+            "           1       0.94      0.92      0.93       142\n",
+            "\n",
+            "    accuracy                           0.93       284\n",
+            "   macro avg       0.93      0.93      0.93       284\n",
+            "weighted avg       0.93      0.93      0.93       284\n",
+            "\n",
+            "Confusion Matrix:\n",
+            " [[134   8]\n",
+            " [ 12 130]]\n",
+            "\n",
+            "\n",
+            "Model: Decision Tree\n",
+            "Accuracy: 0.9753521126760564\n",
+            "Classification Report:\n",
+            "               precision    recall  f1-score   support\n",
+            "\n",
+            "           0       0.99      0.96      0.98       142\n",
+            "           1       0.97      0.99      0.98       142\n",
+            "\n",
+            "    accuracy                           0.98       284\n",
+            "   macro avg       0.98      0.98      0.98       284\n",
+            "weighted avg       0.98      0.98      0.98       284\n",
+            "\n",
+            "Confusion Matrix:\n",
+            " [[137   5]\n",
+            " [  2 140]]\n",
+            "\n",
+            "\n",
+            "Model: Naive Bayes\n",
+            "Accuracy: 0.7676056338028169\n",
+            "Classification Report:\n",
+            "               precision    recall  f1-score   support\n",
+            "\n",
+            "           0       0.81      0.70      0.75       142\n",
+            "           1       0.73      0.84      0.78       142\n",
+            "\n",
+            "    accuracy                           0.77       284\n",
+            "   macro avg       0.77      0.77      0.77       284\n",
+            "weighted avg       0.77      0.77      0.77       284\n",
+            "\n",
+            "Confusion Matrix:\n",
+            " [[ 99  43]\n",
+            " [ 23 119]]\n",
+            "\n",
+            "\n",
+            "Model: SVM\n",
+            "Accuracy: 0.9507042253521126\n",
+            "Classification Report:\n",
+            "               precision    recall  f1-score   support\n",
+            "\n",
+            "           0       0.95      0.95      0.95       142\n",
+            "           1       0.95      0.95      0.95       142\n",
+            "\n",
+            "    accuracy                           0.95       284\n",
+            "   macro avg       0.95      0.95      0.95       284\n",
+            "weighted avg       0.95      0.95      0.95       284\n",
+            "\n",
+            "Confusion Matrix:\n",
+            " [[135   7]\n",
+            " [  7 135]]\n",
+            "\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Exportação do Modelo\n",
+        "### Salvamento do Melhor Modelo"
+      ],
+      "metadata": {
+        "id": "XPSjdHksySdQ"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "feature_names = X_encoded.columns\n",
+        "joblib.dump(feature_names, 'best_model_employee_feature_names.pkl')\n",
+        "\n",
+        "# Salvar o melhor modelo\n",
+        "joblib.dump(best_models['SVM'], 'best_model_employee_attrition.pkl')\n",
+        "\n",
+        "# Para teste com PyTest\n",
+        "X_encoded_columns = X_encoded.columns.tolist()\n",
+        "joblib.dump((best_models['SVM'], X_encoded_columns), 'best_model_with_columns.pkl')"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "qh7r8HFQx61w",
+        "outputId": "0dea1d68-f405-466a-9cd9-7811434f47ff"
+      },
+      "execution_count": 99,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "['best_model_with_columns.pkl']"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 99
+        }
+      ]
+    }
+  ]
 }
-```
-
-# Otimização de Hiperparâmetros
-```python
-param_grid = {
-    'KNN': {'knn__n_neighbors': [3, 5, 7]},
-    'Decision Tree': {'tree__max_depth': [None, 10, 20]},
-    'Naive Bayes': {}, 
-    'SVM': {'svm__C': [0.1, 1, 10]}
-}
-
-best_models = {}
-for model_name, model in models.items():
-    if param_grid[model_name]:
-        grid = GridSearchCV(model, param_grid[model_name], cv=5)
-        grid.fit(X_train_scaled, y_train)
-        best_models[model_name] = grid.best_estimator_
-    else:
-        model.fit(X_train_scaled, y_train)
-        best_models[model_name] = model
-```
-
-# Avaliação dos Modelos
-```python
-for model_name, model in best_models.items():
-    y_pred = model.predict(X_test_scaled)
-    print(f"Model: {model_name}")
-    print("Accuracy:", accuracy_score(y_test, y_pred))
-    print("Classification Report:\n", classification_report(y_test, y_pred))
-    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-    print("\n")
-```
-### *Output*
-```shell
-Model: KNN
-Accuracy: 0.8376666666666667
-Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.83      0.59      0.69       911
-           1       0.84      0.95      0.89      2089
-
-    accuracy                           0.84      3000
-   macro avg       0.83      0.77      0.79      3000
-weighted avg       0.84      0.84      0.83      3000
-
-Confusion Matrix:
- [[ 534  377]
- [ 110 1979]]
-
-
-Model: Decision Tree
-Accuracy: 0.8503333333333334
-Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.80      0.67      0.73       911
-           1       0.87      0.93      0.90      2089
-
-    accuracy                           0.85      3000
-   macro avg       0.83      0.80      0.81      3000
-weighted avg       0.85      0.85      0.85      3000
-
-Confusion Matrix:
- [[ 614  297]
- [ 152 1937]]
-
-
-Model: Naive Bayes
-Accuracy: 0.7963333333333333
-Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.67      0.65      0.66       911
-           1       0.85      0.86      0.85      2089
-
-    accuracy                           0.80      3000
-   macro avg       0.76      0.75      0.76      3000
-weighted avg       0.79      0.80      0.80      3000
-
-Confusion Matrix:
- [[ 588  323]
- [ 288 1801]]
-
-
-Model: SVM
-Accuracy: 0.857
-Classification Report:
-               precision    recall  f1-score   support
-
-           0       0.87      0.62      0.72       911
-           1       0.85      0.96      0.90      2089
-
-    accuracy                           0.86      3000
-   macro avg       0.86      0.79      0.81      3000
-weighted avg       0.86      0.86      0.85      3000
-
-Confusion Matrix:
- [[ 563  348]
- [  81 2008]]
-```
-
-
-# Exportação do Modelo
-```python
-joblib.dump(best_models['SVM'], 'best_model.pkl')
-```
