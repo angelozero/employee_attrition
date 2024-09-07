@@ -264,7 +264,7 @@ X_encoded_columns = X_encoded.columns.tolist()
 joblib.dump((best_models['SVM'], X_encoded_columns), 'best_model_with_columns.pkl')
 ```
 
-# Resumo dos Principais Achados
+## Resumo dos Principais Achados
 
 O projeto de previsão da satisfação dos funcionários revelou que o modelo de **Decision Tree** teve o melhor desempenho, com uma acurácia de **97,54%**. O **SVM** também apresentou bons resultados, com **95,07%** de acurácia. A distribuição dos dados mostrou que a maioria dos funcionários (709 de 999) estava insatisfeita, o que é preocupante. O upsampling da classe minoritária melhorou o balanceamento dos dados.
 
