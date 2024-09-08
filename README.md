@@ -8,6 +8,9 @@ O objetivo deste projeto é desenvolver um modelo de machine learning que prevê
 ### Breve Descrição do Dataset
 O dataset "Employee Satisfaction Survey" contém informações relevantes sobre os funcionários, como níveis de satisfação, avaliações de desempenho, horas trabalhadas, tempo de serviço, acidentes de trabalho, promoções e salários. Com essas informações, podemos analisar os fatores que influenciam a satisfação dos funcionários.
 
+### Dataset utilizado
+[Kaggle - EmplolyeeSurvey](https://www.kaggle.com/code/dennismathewjose/emplolyeesurvey)
+
 ## Importação de Bibliotecas Necessárias
 ```python
 import pandas as pd
